@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Tanya Jawab</title>
+    <style>
+        /* Global Styles */
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(to bottom, #ffe4e1, #ffd1dc);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: #333;
+        }
+
+        /* Main Container */
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+            padding: 30px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            transition: transform 0.3s ease;
+        }
+
+        .container:hover {
+            transform: scale(1.05);
+        }
+
+        /* Question Section */
+        .question {
+            font-size: 1.6rem;
+            margin-bottom: 20px;
+            color: #ff6f91;
+            font-weight: bold;
+            animation: fadeIn 1s ease;
+        }
+
+        /* Answer Input */
+        .answer {
+            width: 90%;
+            padding: 12px;
+            font-size: 1rem;
+            margin-top: 15px;
+            border-radius: 10px;
+            border: 2px solid #ffb6c1;
+            box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .answer:focus {
+            border-color: #ff6f91;
+            outline: none;
+            box-shadow: 0 0 8px rgba(255, 105, 180, 0.6);
+        }
+
+        /* Submit Button */
+        .btn {
+            padding: 15px 35px;
+            font-size: 1.2rem;
+            border: none;
+            border-radius: 12px;
+            background-color: #ff6f91;
+            color: white;
+            cursor: pointer;
+            margin-top: 25px;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            background-color: #ff4a68;
+            transform: scale(1.1);
+        }
+
+        /* Score Display */
+        .score {
+            margin-top: 30px;
+            font-size: 1.2rem;
+            color: #ff6f91;
+            font-weight: bold;
+        }
+
+        /* Message Display */
+        #message {
+            display: none;
+            margin-top: 20px;
+            font-size: 0.9rem;
+            color: #ff4a68;
+        }
+
+        /* Image Slider */
+        .image-slider {
+            position: absolute;
+            bottom: 10%;
+            width: 100%;
+            height: 150px;
+            display: flex;
+            overflow: hidden;
+        }
+
+        .image-slider img {
+            width: 150px;
+            height: 100%;
+            object-fit: cover;
+            margin-right: 10px;
+            animation: slideImages 30s linear infinite;
+        }
+
+        /* Animations */
+        @keyframes slideImages {
+            0% {
+                transform: translateX(0);
+            }
+            100% {
+                transform: translateX(-1500px);
+            }
+        }
+
+        @keyframes fadeIn {
+            0% {
+                opacity: 0;
+            }
+            100% {
+                opacity: 1;
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 600px) {
+            .container {
+                width: 90%;
+                padding: 20px;
+            }
+
+            .btn {
+                font-size: 1rem;
+                padding: 12px 25px;
+            }
+
+            .answer {
+                width: 100%;
+            }
+
+            .image-slider img {
+                width: 100px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Game Container -->
+    <div class="container">
+        <div id="game">
+            <div class="question" id="question"></div>
+            <input type="text" id="answer" class="answer" placeholder="Ketik jawaban di sini">
+            <button class="btn" id="submit">Jawab</button>
+        </div>
+        <div id="message">Tunggu sebentar, pengiriman akan diproses. Tunggu beberapa saat.</div>
+        <div class="score" id="score">Total Dana: Rp0</div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        const questions = [
+            { text: "Apa yang kamu rasakan saat pertama kali bertemu denganku?", value: 500 },
+            { text: "Siapa orang yang paling memengaruhi cara pandangmu tentang cinta?", value: 500 },
+            { text: "Menurutmu, apa hal terbaik dari hubungan kita?", value: 500 },
+            { text: "Apa yang bisa aku lakukan untuk membuatmu merasa lebih dicintai?", value: 500 },
+            { text: "Seberapa kamu mencintaiku?", value: 500 },
+            { text: "Apa alasanmu memilihku?", value: 500 },
+            { text: "Apa rencana kita di masa depan?", value: 500 }
+        ];
+
+        let currentQuestionIndex = 0;
+        let totalScore = 0;
+
+        const questionElement = document.getElementById('question');
+        const answerElement = document.getElementById('answer');
+        const submitButton = document.getElementById('submit');
+        const scoreElement = document.getElementById('score');
+        const messageElement = document.getElementById('message');
+
+        function loadQuestion() {
+            if (currentQuestionIndex < questions.length) {
+                questionElement.textContent = questions[currentQuestionIndex].text;
+                answerElement.value = '';
+            } else {
+                endGame();
+            }
+        }
+
+        function handleAnswer() {
+            const answer = answerElement.value.trim();
+            if (answer) {
+                messageElement.style.display = 'block';
+
+                setTimeout(() => {
+                    totalScore += questions[currentQuestionIndex].value;
+                    currentQuestionIndex++;
+                    updateScore();
+                    loadQuestion();
+                    sendToWhatsApp(answer); // Send answer to WhatsApp
+                    messageElement.style.display = 'none';
+                }, 2000);
+            } else {
+                alert("Silakan isi jawaban sebelum melanjutkan!");
+            }
+        }
+
+        function updateScore() {
+            scoreElement.textContent = `Total Dana: Rp${totalScore}`;
+        }
+
+        function endGame() {
+            questionElement.textContent = "Terima kasih sudah bermain!";
+            document.getElementById('game').innerHTML = `
+                <p>Permainan selesai. Kamu telah mengumpulkan total dana sebesar Rp${totalScore}.</p>
+            `;
+        }
+
+        function sendToWhatsApp(message) {
+            const phoneNumber = "+6285212637719"; // Nomor WhatsApp Anda
+            const url = `https://api.whatsapp.com/send?phone=${phoneNumber}&text=${encodeURIComponent(message)}`;
+            window.open(url, '_blank');
+        }
+
+        submitButton.addEventListener('click', handleAnswer);
+        loadQuestion();
+    </script>
+</body>
+</html>
